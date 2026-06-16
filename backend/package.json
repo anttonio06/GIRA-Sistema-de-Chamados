@@ -1,0 +1,22 @@
+{
+    "name": "gira-backend",
+    "version": "0.1.0",
+    "description": "GIRA — API REST do Sistema de Gestao de Chamados de Manutencao",
+    "main": "app.js",
+    "scripts": {
+          "start": "node app.js",
+          "dev": "nodemon app.js",
+          "seed": "node src/db/seed.js"
+    },
+    "dependencies": {
+          "bcrypt": "^5.1.1",
+          "cors": "^2.8.5",
+          "dotenv": "^16.4.5",
+          "express": "^4.19.2",
+          "express-session": "^1.18.0",
+          "mysql2": "^3.9.7"
+    },
+    "devDependencies": {
+          "nodemon": "^3.1.0"
+    }
+}
