@@ -14,7 +14,7 @@ async function seed() {
     for (const u of usuarios) {
           const hash = await bcrypt.hash(u.senha, SALT_ROUNDS);
           await pool.execute(
-                  'INSERT INTO usuarios (nome, email, senha_hash, perfil) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE nome = nome',
+                  'INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil) VALUES (?, ?, ?, ?)',
                   [u.nome, u.email, hash, u.perfil]
                 );
           console.log('Inserido:', u.email);

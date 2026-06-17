@@ -36,7 +36,7 @@ const criarUsuario = async (req, res) => {
 
         res.status(201).json({ mensagem: 'Usuário criado com sucesso.' });
     } catch (err) {
-        if (err.code === 'ER_DUP_ENTRY') {
+        if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
             return res.status(400).json({ erro: 'E-mail já está em uso.' });
         }
         console.error('[criarUsuario]', err);
