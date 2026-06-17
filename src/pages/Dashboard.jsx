@@ -7,44 +7,43 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const Dashboard = () => {
-    const { user } = useContext(AuthContext);
-    const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    
-    // Form state
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [submitLoading, setSubmitLoading] = useState(false);
+    const { usuario } = useContext(AuthContext);
+    const [chamados, setChamados] = useState([]);
+    const [carregando, setCarregando] = useState(true);
+    const [exibirFormulario, setExibirFormulario] = useState(false);
 
-    const fetchTickets = async () => {
+    const [titulo, setTitulo] = useState('');
+    const [descricao, setDescricao] = useState('');
+    const [enviando, setEnviando] = useState(false);
+
+    const buscarChamados = async () => {
         try {
-            const response = await api.get('/tickets');
-            setTickets(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar chamados:', error);
+            const resposta = await api.get('/chamados');
+            setChamados(resposta.data);
+        } catch (erro) {
+            console.error('Erro ao buscar chamados:', erro);
         } finally {
-            setLoading(false);
+            setCarregando(false);
         }
     };
 
     useEffect(() => {
-        fetchTickets();
+        buscarChamados();
     }, []);
 
-    const handleCreateTicket = async (e) => {
+    const handleCriarChamado = async (e) => {
         e.preventDefault();
-        setSubmitLoading(true);
+        setEnviando(true);
         try {
-            await api.post('/tickets', { title, description });
-            setTitle('');
-            setDescription('');
-            setShowForm(false);
-            fetchTickets(); // Recarrega a lista
-        } catch (error) {
-            alert('Erro ao criar chamado.');
+            await api.post('/chamados', { titulo, descricao });
+            setTitulo('');
+            setDescricao('');
+            setExibirFormulario(false);
+            buscarChamados();
+        } catch (erro) {
+            alert(erro.response?.data?.erro || 'Erro ao criar chamado.');
         } finally {
-            setSubmitLoading(false);
+            setEnviando(false);
         }
     };
 
@@ -52,41 +51,41 @@ const Dashboard = () => {
         <div>
             <div className="flex-between mb-4">
                 <h2>Meus Chamados</h2>
-                {(user.role === 'solicitante' || user.role === 'admin') && (
-                    <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+                {(usuario.perfil === 'solicitante' || usuario.perfil === 'admin') && (
+                    <button className="btn btn-primary" onClick={() => setExibirFormulario(!exibirFormulario)}>
                         <PlusCircle size={20} /> Novo Chamado
                     </button>
                 )}
             </div>
 
-            {showForm && (
+            {exibirFormulario && (
                 <div className="glass-panel animate-fade-in mb-4" style={{ padding: '1.5rem' }}>
                     <h3>Abrir Novo Chamado</h3>
-                    <form onSubmit={handleCreateTicket} className="mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <form onSubmit={handleCriarChamado} className="mt-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <div>
                             <label className="text-sm text-muted mb-4" style={{ display: 'block', marginBottom: '0.5rem' }}>Título do Problema</label>
-                            <input 
-                                type="text" 
-                                value={title} 
-                                onChange={(e) => setTitle(e.target.value)} 
+                            <input
+                                type="text"
+                                value={titulo}
+                                onChange={(e) => setTitulo(e.target.value)}
                                 placeholder="Ex: Ar condicionado vazando na sala 3"
-                                required 
+                                required
                             />
                         </div>
                         <div>
                             <label className="text-sm text-muted mb-4" style={{ display: 'block', marginBottom: '0.5rem' }}>Descrição Detalhada</label>
-                            <textarea 
-                                value={description} 
-                                onChange={(e) => setDescription(e.target.value)} 
+                            <textarea
+                                value={descricao}
+                                onChange={(e) => setDescricao(e.target.value)}
                                 rows="4"
                                 placeholder="Descreva o problema com o máximo de detalhes possível..."
-                                required 
+                                required
                             />
                         </div>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
-                            <button type="submit" className="btn btn-primary" disabled={submitLoading}>
-                                {submitLoading ? 'Enviando...' : 'Criar Chamado'}
+                            <button type="button" className="btn btn-secondary" onClick={() => setExibirFormulario(false)}>Cancelar</button>
+                            <button type="submit" className="btn btn-primary" disabled={enviando}>
+                                {enviando ? 'Enviando...' : 'Criar Chamado'}
                             </button>
                         </div>
                     </form>
@@ -94,9 +93,9 @@ const Dashboard = () => {
             )}
 
             <div className="glass-panel" style={{ overflow: 'hidden' }}>
-                {loading ? (
+                {carregando ? (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>Carregando chamados...</div>
-                ) : tickets.length === 0 ? (
+                ) : chamados.length === 0 ? (
                     <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                         Nenhum chamado encontrado.
                     </div>
@@ -107,29 +106,29 @@ const Dashboard = () => {
                                 <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>ID</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Título</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Status</th>
-                                {user.role !== 'solicitante' && <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Solicitante</th>}
+                                {usuario.perfil !== 'solicitante' && <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Solicitante</th>}
                                 <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Técnico</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>Data</th>
                                 <th style={{ padding: '1rem', textAlign: 'center', borderBottom: '1px solid var(--border)' }}>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {tickets.map(ticket => (
-                                <tr key={ticket.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <td style={{ padding: '1rem' }}>#{ticket.id}</td>
-                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{ticket.title}</td>
+                            {chamados.map(chamado => (
+                                <tr key={chamado.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <td style={{ padding: '1rem' }}>#{chamado.id}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{chamado.titulo}</td>
                                     <td style={{ padding: '1rem' }}>
-                                        <span className={`status-badge status-${ticket.status.replace(' ', '-')}`}>
-                                            {ticket.status}
+                                        <span className={`status-badge status-${chamado.status.replaceAll('_', '-')}`}>
+                                            {chamado.status.replaceAll('_', ' ')}
                                         </span>
                                     </td>
-                                    {user.role !== 'solicitante' && <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{ticket.requester_name}</td>}
-                                    <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{ticket.assigned_name || 'Não atribuído'}</td>
+                                    {usuario.perfil !== 'solicitante' && <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{chamado.solicitante_nome}</td>}
+                                    <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{chamado.responsavel_nome || 'Não atribuído'}</td>
                                     <td style={{ padding: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                                        {format(new Date(ticket.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                                        {format(new Date(chamado.criado_em), "dd/MM/yy HH:mm", { locale: ptBR })}
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                        <Link to={`/chamado/${ticket.id}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                                        <Link to={`/chamado/${chamado.id}`} className="btn btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                                             <Search size={16} /> Ver
                                         </Link>
                                     </td>

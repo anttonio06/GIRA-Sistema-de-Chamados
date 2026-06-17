@@ -3,20 +3,19 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import { AuthContext, AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import TicketDetails from './pages/TicketDetails';
-import AdminPanel from './pages/AdminPanel';
+import DetalhesChamado from './pages/DetalhesChamado';
+import PainelAdmin from './pages/PainelAdmin';
 import { LogOut, LayoutDashboard, Settings, Ticket as TicketIcon } from 'lucide-react';
 import './App.css';
 
-// Componente para rotas protegidas
-const ProtectedRoute = ({ children, allowedRoles }) => {
-    const { user, loading } = useContext(AuthContext);
+const RotaProtegida = ({ children, perfisPermitidos }) => {
+    const { usuario, carregando } = useContext(AuthContext);
 
-    if (loading) return <div className="flex-center" style={{height: '100vh'}}>Carregando...</div>;
-    
-    if (!user) return <Navigate to="/login" replace />;
+    if (carregando) return <div className="flex-center" style={{height: '100vh'}}>Carregando...</div>;
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (!usuario) return <Navigate to="/login" replace />;
+
+    if (perfisPermitidos && !perfisPermitidos.includes(usuario.perfil)) {
         return (
             <div className="flex-center" style={{height: '100vh', flexDirection: 'column', gap: '1rem'}}>
                 <h1 className="text-danger">Acesso Negado</h1>
@@ -29,9 +28,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return children;
 };
 
-// Layout padrão com Sidebar
-const AppLayout = ({ children }) => {
-    const { user, logout } = useContext(AuthContext);
+const LayoutApp = ({ children }) => {
+    const { usuario, logout } = useContext(AuthContext);
 
     return (
         <div className="app-container">
@@ -42,12 +40,12 @@ const AppLayout = ({ children }) => {
                     </div>
                     <h3>Gira</h3>
                 </div>
-                
+
                 <div className="mt-4 mb-4">
                     <p className="text-sm text-muted">Bem-vindo(a),</p>
-                    <p style={{ fontWeight: 500 }}>{user?.name}</p>
+                    <p style={{ fontWeight: 500 }}>{usuario?.nome}</p>
                     <span className="status-badge status-aguardando" style={{ display: 'inline-block', marginTop: '0.5rem', fontSize: '0.7rem' }}>
-                        {user?.role}
+                        {usuario?.perfil}
                     </span>
                 </div>
 
@@ -55,7 +53,7 @@ const AppLayout = ({ children }) => {
                     <Link to="/" className="btn btn-secondary" style={{ justifyContent: 'flex-start' }}>
                         <LayoutDashboard size={18} /> Dashboard
                     </Link>
-                    {user?.role === 'admin' && (
+                    {usuario?.perfil === 'admin' && (
                         <Link to="/admin" className="btn btn-secondary" style={{ justifyContent: 'flex-start' }}>
                             <Settings size={18} /> Painel Admin
                         </Link>
@@ -79,29 +77,29 @@ function App() {
             <Router>
                 <Routes>
                     <Route path="/login" element={<Login />} />
-                    
+
                     <Route path="/" element={
-                        <ProtectedRoute>
-                            <AppLayout>
+                        <RotaProtegida>
+                            <LayoutApp>
                                 <Dashboard />
-                            </AppLayout>
-                        </ProtectedRoute>
+                            </LayoutApp>
+                        </RotaProtegida>
                     } />
-                    
+
                     <Route path="/chamado/:id" element={
-                        <ProtectedRoute>
-                            <AppLayout>
-                                <TicketDetails />
-                            </AppLayout>
-                        </ProtectedRoute>
+                        <RotaProtegida>
+                            <LayoutApp>
+                                <DetalhesChamado />
+                            </LayoutApp>
+                        </RotaProtegida>
                     } />
 
                     <Route path="/admin" element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AppLayout>
-                                <AdminPanel />
-                            </AppLayout>
-                        </ProtectedRoute>
+                        <RotaProtegida perfisPermitidos={['admin']}>
+                            <LayoutApp>
+                                <PainelAdmin />
+                            </LayoutApp>
+                        </RotaProtegida>
                     } />
                 </Routes>
             </Router>

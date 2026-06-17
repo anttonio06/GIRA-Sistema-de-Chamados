@@ -4,45 +4,44 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, ShieldAlert, Plus } from 'lucide-react';
 
-const AdminPanel = () => {
-    const [users, setUsers] = useState([]);
+const PainelAdmin = () => {
+    const [usuarios, setUsuarios] = useState([]);
     const [logs, setLogs] = useState([]);
-    const [activeTab, setActiveTab] = useState('users'); // 'users' ou 'logs'
-    
-    // Create User Form State
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [role, setRole] = useState('solicitante');
-    const [showForm, setShowForm] = useState(false);
+    const [abaAtiva, setAbaAtiva] = useState('usuarios');
 
-    const fetchData = async () => {
+    const [nome, setNome] = useState('');
+    const [email, setEmail] = useState('');
+    const [senha, setSenha] = useState('');
+    const [perfil, setPerfil] = useState('solicitante');
+    const [exibirFormulario, setExibirFormulario] = useState(false);
+
+    const buscarDados = async () => {
         try {
-            const [usersRes, logsRes] = await Promise.all([
-                api.get('/users'),
-                api.get('/audit')
+            const [resUsuarios, resLogs] = await Promise.all([
+                api.get('/usuarios'),
+                api.get('/auditoria'),
             ]);
-            setUsers(usersRes.data);
-            setLogs(logsRes.data);
-        } catch (error) {
-            console.error('Erro ao buscar dados do painel admin', error);
+            setUsuarios(resUsuarios.data);
+            setLogs(resLogs.data);
+        } catch (erro) {
+            console.error('Erro ao buscar dados do painel admin', erro);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        buscarDados();
     }, []);
 
-    const handleCreateUser = async (e) => {
+    const handleCriarUsuario = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/users', { name, email, password, role });
+            await api.post('/usuarios', { nome, email, senha, perfil });
             alert('Usuário criado com sucesso!');
-            setShowForm(false);
-            setName(''); setEmail(''); setPassword(''); setRole('solicitante');
-            fetchData();
-        } catch (error) {
-            alert(error.response?.data?.message || 'Erro ao criar usuário');
+            setExibirFormulario(false);
+            setNome(''); setEmail(''); setSenha(''); setPerfil('solicitante');
+            buscarDados();
+        } catch (erro) {
+            alert(erro.response?.data?.erro || 'Erro ao criar usuário');
         }
     };
 
@@ -51,35 +50,35 @@ const AdminPanel = () => {
             <h2 className="mb-4">Painel Administrativo</h2>
 
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-                <button 
-                    className={`btn ${activeTab === 'users' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setActiveTab('users')}
+                <button
+                    className={`btn ${abaAtiva === 'usuarios' ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setAbaAtiva('usuarios')}
                 >
                     <Users size={18} /> Gestão de Usuários
                 </button>
-                <button 
-                    className={`btn ${activeTab === 'logs' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setActiveTab('logs')}
+                <button
+                    className={`btn ${abaAtiva === 'logs' ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setAbaAtiva('logs')}
                 >
                     <ShieldAlert size={18} /> Logs de Auditoria
                 </button>
             </div>
 
-            {activeTab === 'users' && (
+            {abaAtiva === 'usuarios' && (
                 <div>
                     <div className="flex-between mb-4">
                         <h3>Usuários do Sistema</h3>
-                        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+                        <button className="btn btn-primary" onClick={() => setExibirFormulario(!exibirFormulario)}>
                             <Plus size={18} /> Novo Usuário
                         </button>
                     </div>
 
-                    {showForm && (
+                    {exibirFormulario && (
                         <div className="glass-panel mb-4 animate-fade-in" style={{ padding: '1.5rem' }}>
-                            <form onSubmit={handleCreateUser} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <form onSubmit={handleCriarUsuario} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                                 <div>
                                     <label className="text-sm text-muted mb-2" style={{ display: 'block' }}>Nome Completo</label>
-                                    <input required type="text" value={name} onChange={e => setName(e.target.value)} />
+                                    <input required type="text" value={nome} onChange={e => setNome(e.target.value)} />
                                 </div>
                                 <div>
                                     <label className="text-sm text-muted mb-2" style={{ display: 'block' }}>E-mail</label>
@@ -87,18 +86,18 @@ const AdminPanel = () => {
                                 </div>
                                 <div>
                                     <label className="text-sm text-muted mb-2" style={{ display: 'block' }}>Senha</label>
-                                    <input required type="password" value={password} onChange={e => setPassword(e.target.value)} />
+                                    <input required type="password" value={senha} onChange={e => setSenha(e.target.value)} />
                                 </div>
                                 <div>
                                     <label className="text-sm text-muted mb-2" style={{ display: 'block' }}>Perfil de Acesso</label>
-                                    <select required value={role} onChange={e => setRole(e.target.value)}>
+                                    <select required value={perfil} onChange={e => setPerfil(e.target.value)}>
                                         <option value="solicitante">Solicitante</option>
                                         <option value="tecnico">Técnico</option>
                                         <option value="admin">Administrador</option>
                                     </select>
                                 </div>
                                 <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancelar</button>
+                                    <button type="button" className="btn btn-secondary" onClick={() => setExibirFormulario(false)}>Cancelar</button>
                                     <button type="submit" className="btn btn-primary">Cadastrar Usuário</button>
                                 </div>
                             </form>
@@ -116,14 +115,14 @@ const AdminPanel = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map(u => (
+                                {usuarios.map(u => (
                                     <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                         <td style={{ padding: '1rem' }}>{u.id}</td>
-                                        <td style={{ padding: '1rem', fontWeight: 500 }}>{u.name}</td>
+                                        <td style={{ padding: '1rem', fontWeight: 500 }}>{u.nome}</td>
                                         <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{u.email}</td>
                                         <td style={{ padding: '1rem' }}>
                                             <span className="status-badge status-aguardando" style={{ textTransform: 'capitalize' }}>
-                                                {u.role}
+                                                {u.perfil}
                                             </span>
                                         </td>
                                     </tr>
@@ -134,7 +133,7 @@ const AdminPanel = () => {
                 </div>
             )}
 
-            {activeTab === 'logs' && (
+            {abaAtiva === 'logs' && (
                 <div>
                     <h3 className="mb-4">Logs de Auditoria de Segurança</h3>
                     <div className="glass-panel" style={{ overflow: 'hidden' }}>
@@ -152,14 +151,14 @@ const AdminPanel = () => {
                                 {logs.map(log => (
                                     <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                                         <td style={{ padding: '1rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                                            {format(new Date(log.created_at), "dd/MM/yy HH:mm:ss")}
+                                            {format(new Date(log.criado_em), "dd/MM/yy HH:mm:ss")}
                                         </td>
                                         <td style={{ padding: '1rem' }}>
-                                            {log.user_name ? `${log.user_name} (#${log.user_id})` : 'Sistema'}
+                                            {log.usuario_nome ? `${log.usuario_nome} (#${log.usuario_id})` : 'Sistema'}
                                         </td>
-                                        <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{log.action}</td>
-                                        <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{log.details}</td>
-                                        <td style={{ padding: '1rem', fontFamily: 'monospace' }}>{log.ip_address}</td>
+                                        <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--primary)' }}>{log.acao}</td>
+                                        <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>{log.detalhe}</td>
+                                        <td style={{ padding: '1rem', fontFamily: 'monospace' }}>{log.ip}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -171,4 +170,4 @@ const AdminPanel = () => {
     );
 };
 
-export default AdminPanel;
+export default PainelAdmin;

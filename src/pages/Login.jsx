@@ -6,23 +6,23 @@ import { LogIn } from 'lucide-react';
 const Login = () => {
     const { login } = useContext(AuthContext);
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [senha, setSenha] = useState('');
+    const [erro, setErro] = useState('');
+    const [carregando, setCarregando] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setLoading(true);
+        setErro('');
+        setCarregando(true);
 
         try {
-            await login(email, password);
+            await login(email, senha);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Erro ao realizar login.');
+            setErro(err.response?.data?.erro || 'Erro ao realizar login.');
         } finally {
-            setLoading(false);
+            setCarregando(false);
         }
     };
 
@@ -35,38 +35,38 @@ const Login = () => {
                     </div>
                     <h2>Gira</h2>
                 </div>
-                
+
                 <p className="text-muted text-center mb-4">Acesse sua conta para continuar</p>
 
-                {error && (
+                {erro && (
                     <div className="animate-fade-in mb-4" style={{ padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)', fontSize: '0.9rem' }}>
-                        {error}
+                        {erro}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
                         <label className="text-sm text-muted mb-4" style={{ display: 'block', marginBottom: '0.5rem' }}>E-mail</label>
-                        <input 
-                            type="email" 
-                            value={email} 
-                            onChange={(e) => setEmail(e.target.value)} 
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="seu@email.com"
-                            required 
+                            required
                         />
                     </div>
                     <div>
                         <label className="text-sm text-muted mb-4" style={{ display: 'block', marginBottom: '0.5rem' }}>Senha</label>
-                        <input 
-                            type="password" 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
+                        <input
+                            type="password"
+                            value={senha}
+                            onChange={(e) => setSenha(e.target.value)}
                             placeholder="••••••••"
-                            required 
+                            required
                         />
                     </div>
-                    <button type="submit" className="btn btn-primary mt-4" disabled={loading} style={{ width: '100%' }}>
-                        {loading ? 'Entrando...' : 'Entrar no Sistema'}
+                    <button type="submit" className="btn btn-primary mt-4" disabled={carregando} style={{ width: '100%' }}>
+                        {carregando ? 'Entrando...' : 'Entrar no Sistema'}
                     </button>
                 </form>
             </div>
